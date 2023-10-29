@@ -1234,11 +1234,26 @@ export const modelHelpers = {
     },
 
     applyNewSettings: (grid, newSettings) => {
+        const toggled = (setting, on) => {
+            const oldSetting = modelHelpers.getSetting(grid, setting);
+            return on
+                ? !oldSetting && newSettings[setting]
+                : oldSetting && !newSettings[setting];
+        };
+
+        const ON = true;
+        const OFF = false;
+        
         // If simple pencil marking mode is being changed from 'off' to 'on' collapse
         // all pencil marks to inner.
-        const oldSimpleMode = modelHelpers.getSetting(grid, SETTINGS.simplePencilMarking);
-        if (!oldSimpleMode && newSettings[SETTINGS.simplePencilMarking]) {
+        if (toggled(SETTINGS.simplePencilMarking, ON)) {
             grid = modelHelpers.collapseAllOuterPencilMarks(grid);
+        }
+
+        // (adjeiv) If error/conflict highlighting is being changed from 'on' to 'off',
+        // refresh highlighting
+        if (toggled(SETTINGS.highlightMatches, OFF)) {
+            grid = modelHelpers.clearErrorHighlights(grid);
         }
         return modelHelpers.saveSettings(grid, newSettings);
     },
@@ -1282,6 +1297,7 @@ export const modelHelpers = {
                 'inputMode': 'digit',
                 'hintsUsed': emptySet,
             });
+        grid = modelHelpers.clearErrorHighlights(grid);
         return modelHelpers.checkCompletedDigits(grid);
     },
 
@@ -1426,6 +1442,13 @@ export const modelHelpers = {
             );
             return ok ? c : c.set('errorMessage', errorAtIndex[index]);
         });
+        return grid.set('cells', cells);
+    },
+
+    clearErrorHighlights: (grid) => {
+        const cells = grid.get('cells').map((c) => {
+            return c.get('isGiven') ? c : c.set('errorMessage', undefined);
+        })
         return grid.set('cells', cells);
     },
 

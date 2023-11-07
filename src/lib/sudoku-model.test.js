@@ -557,6 +557,48 @@ test('no highlight conflicts', () => {
     });
 });
 
+test('toggle highlight conflicts', () => {
+    let grid = newSudokuModel({initialDigits: initialDigitsComplete});
+
+    expect(grid.get('currentSnapshot')).toBe('');
+    grid = modelHelpers.applySelectionOp(grid, 'setSelection', 15);
+    grid = modelHelpers.updateSelectedCells(grid, 'setDigit', '4');
+
+    expect(grid.get('currentSnapshot')).toBe('27D4');
+    expect(grid.get('matchDigit')).toBe('4');
+
+    let c15 = grid.get('cells').get(15);
+    expect(c15.get('digit')).toBe('4');
+    expect(c15.get('snapshot')).toBe('D4');
+    expect(c15.get('errorMessage')).toBe('Digit 4 in row 2');
+    expect(c15.get('isGiven')).toBe(false);
+    expect(c15.get('isSelected')).toBe(true);
+
+    // toggle off
+    let settings = grid.get('settings');
+    let newSettings = { ...settings, [SETTINGS.highlightConflicts]: false};
+    grid = modelHelpers.applyNewSettings(grid, newSettings);
+
+    c15 = grid.get('cells').get(15);
+    expect(c15.get('digit')).toBe('4');
+    expect(c15.get('snapshot')).toBe('D4');
+    expect(c15.get('errorMessage')).toBe(undefined);
+    expect(c15.get('isGiven')).toBe(false);
+    expect(c15.get('isSelected')).toBe(true);
+
+    // toggle back on
+    settings = grid.get('settings');
+    newSettings = { ...settings, [SETTINGS.highlightConflicts]: true};
+    grid = modelHelpers.applyNewSettings(grid, newSettings);
+
+    c15 = grid.get('cells').get(15);
+    expect(c15.get('digit')).toBe('4');
+    expect(c15.get('snapshot')).toBe('D4');
+    expect(c15.get('errorMessage')).toBe('Digit 4 in row 2');
+    expect(c15.get('isGiven')).toBe(false);
+    expect(c15.get('isSelected')).toBe(true);
+});
+
 test('set cell color', () => {
     let grid = newSudokuModel({initialDigits: initialDigitsPartial, skipCheck: true});
 

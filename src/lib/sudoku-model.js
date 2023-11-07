@@ -181,7 +181,8 @@ export const modelHelpers = {
         const newSettingsJSON = JSON.stringify(newSettings);
         window.localStorage.setItem('settings', newSettingsJSON);
         modelHelpers.syncSettingsToDom(newSettings);
-        return grid.set('settings', newSettings);
+        grid = grid.set('settings', newSettings);
+        return modelHelpers.checkCompletedDigits(grid);
     },
 
     loadFeatureFlags: () => {
@@ -1250,9 +1251,9 @@ export const modelHelpers = {
             grid = modelHelpers.collapseAllOuterPencilMarks(grid);
         }
 
-        // (adjeiv) If error/conflict highlighting is being changed from 'on' to 'off',
-        // refresh highlighting
-        if (toggled(SETTINGS.highlightMatches, OFF)) {
+        // (adjeiv) If error/conflict highlighting is being toggled off,
+        // refresh highlighting accordingly
+        if (toggled(SETTINGS.highlightConflicts, OFF)) {
             grid = modelHelpers.clearErrorHighlights(grid);
         }
         return modelHelpers.saveSettings(grid, newSettings);
